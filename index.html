@@ -38,8 +38,6 @@ button,input,select{font:inherit}
 button{border:0;border-radius:12px;padding:11px 13px;font-weight:750;background:#e2e8f0;color:#0f172a}
 button.secondary{background:#1f2937;color:#f8fafc;border:1px solid var(--line)}
 select,input{background:#0f172a;color:#f8fafc;border:1px solid var(--line);border-radius:11px;padding:10px}
-.chart{height:150px;display:flex;align-items:end;gap:5px;padding-top:8px}
-.col{flex:1;background:linear-gradient(180deg,var(--blue),#1d4ed8);border-radius:6px 6px 2px 2px;min-height:4px}
 .footer{margin-top:14px;color:var(--muted);font-size:12px;line-height:1.5}
 @media(max-width:720px){.grid4{grid-template-columns:1fr 1fr}.metric .value{font-size:21px}}
 </style>
@@ -70,12 +68,6 @@ select,input{background:#0f172a;color:#f8fafc;border:1px solid var(--line);borde
 </div>
 
 <div class="card section">
-  <div class="row"><h2 style="margin:0">Progress & Trend</h2><span class="badge" id="daysLeft"></span></div>
-  <div class="chart" id="chart"></div>
-  <div class="meta"><span>Daily cumulative spend</span><span id="updatedAt"></span></div>
-</div>
-
-<div class="card section">
   <h2>Test Controls</h2>
   <div class="controls">
     <button onclick="seedDemo()">Load demo data</button>
@@ -101,8 +93,7 @@ const DEFAULT={
   {name:"Restaurants/Dining",spent:132.16,target:250},
   {name:"Gasoline",spent:98.72,target:250},
   {name:"Fixed Essentials",spent:3011.43,target:3400}
- ],
- trend:[120,260,410,590,830,970,1120,1460,1780,2050,2380,2670,2890,3100,3450,3620,3810,3990,4120,4230,4288]
+ ]
 };
 const money=v=>new Intl.NumberFormat("en-US",{style:"currency",currency:"USD",maximumFractionDigits:0}).format(v||0);
 let data=JSON.parse(localStorage.getItem("pwa.demo")||"null")||DEFAULT;
@@ -119,9 +110,6 @@ function render(){
  totalBar.style.width=Math.min(100,pct*100)+"%";
  spentText.textContent=money(data.householdBurn)+" spent";
  projText.textContent="Projected "+money(data.projected);
- const dim=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();
- daysLeft.textContent=Math.max(0,dim-now.getDate())+" days left";
- updatedAt.textContent="Updated "+new Date(data.updatedAt).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});
 
  categories.innerHTML=data.categories.map(c=>{
   const p=c.spent/Math.max(c.target,1);
@@ -131,9 +119,6 @@ function render(){
    <div class="meta"><span>${Math.round(p*100)}% of target</span><span>${p>1?"Over target":p>=.8?"Watch":"On track"}</span></div>
   </div>`
  }).join("");
-
- const max=Math.max(...data.trend,1);
- chart.innerHTML=data.trend.map(v=>`<div class="col" style="height:${Math.max(4,v/max*100)}%"></div>`).join("");
 }
 function seedDemo(){data={...DEFAULT,updatedAt:new Date().toISOString()};localStorage.setItem("pwa.demo",JSON.stringify(data));render()}
 function resetDemo(){localStorage.removeItem("pwa.demo");data=DEFAULT;render()}

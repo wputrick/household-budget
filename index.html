@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0f172a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Budget">
+<link rel="manifest" href="manifest.webmanifest">
+<title>Household Budget</title>
+<style>
+:root{
+  --bg:#0b1220;--panel:#111827;--panel2:#172033;--text:#f8fafc;--muted:#94a3b8;
+  --line:#263244;--blue:#3b82f6;--green:#22c55e;--orange:#f59e0b;--red:#ef4444;--purple:#a855f7;
+}
+*{box-sizing:border-box}
+body{margin:0;background:linear-gradient(180deg,#0b1220,#111827);color:var(--text);
+font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;min-height:100vh}
+.wrap{max-width:920px;margin:auto;padding:18px 14px 110px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+h1{font-size:26px;margin:4px 0}.sub{color:var(--muted);font-size:13px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:16px}
+.card{background:rgba(17,24,39,.95);border:1px solid var(--line);border-radius:22px;padding:16px}
+.metric .label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.metric .value{font-size:24px;font-weight:800;margin-top:5px}
+.section{margin-top:12px}.section h2{font-size:18px;margin:0 0 12px}
+.totalbar{height:12px;border-radius:99px;background:#243044;overflow:hidden}.totalbar span{display:block;height:100%;background:linear-gradient(90deg,var(--blue),var(--purple))}
+.category{margin:15px 0}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.catname{font-weight:700}
+.bar{height:10px;border-radius:99px;background:#243044;overflow:hidden;margin-top:7px}
+.bar span{display:block;height:100%;border-radius:99px}
+.meta{display:flex;justify-content:space-between;color:var(--muted);font-size:12px;margin-top:5px}
+.badge{font-size:11px;border-radius:99px;padding:4px 8px;background:#1e293b;color:#cbd5e1}
+.controls{display:flex;gap:8px;flex-wrap:wrap}
+button,input,select{font:inherit}
+button{border:0;border-radius:12px;padding:11px 13px;font-weight:750;background:#e2e8f0;color:#0f172a}
+button.secondary{background:#1f2937;color:#f8fafc;border:1px solid var(--line)}
+select,input{background:#0f172a;color:#f8fafc;border:1px solid var(--line);border-radius:11px;padding:10px}
+.chart{height:150px;display:flex;align-items:end;gap:5px;padding-top:8px}
+.col{flex:1;background:linear-gradient(180deg,var(--blue),#1d4ed8);border-radius:6px 6px 2px 2px;min-height:4px}
+.footer{margin-top:14px;color:var(--muted);font-size:12px;line-height:1.5}
+@media(max-width:720px){.grid4{grid-template-columns:1fr 1fr}.metric .value{font-size:21px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="top">
+  <div><h1>Household Budget</h1><div class="sub" id="monthLabel"></div></div>
+  <div class="controls"><button class="secondary" onclick="toggleMode()">Demo/Live</button></div>
+</div>
+
+<div class="grid4">
+  <div class="card metric"><div class="label">Income</div><div class="value" id="income">$7,000</div></div>
+  <div class="card metric"><div class="label">Household Burn</div><div class="value" id="burn">$0</div></div>
+  <div class="card metric"><div class="label">Work Reimb.</div><div class="value" id="work">$0</div></div>
+  <div class="card metric"><div class="label">Available</div><div class="value" id="available">$0</div></div>
+</div>
+
+<div class="card section">
+  <div class="row"><h2 style="margin:0">Total Budget Progress</h2><span class="badge" id="totalPct">0%</span></div>
+  <div class="totalbar" style="margin-top:12px"><span id="totalBar" style="width:0%"></span></div>
+  <div class="meta"><span id="spentText">$0 spent</span><span id="projText">Projected $0</span></div>
+</div>
+
+<div class="card section">
+  <h2>Spending Targets</h2>
+  <div id="categories"></div>
+</div>
+
+<div class="card section">
+  <div class="row"><h2 style="margin:0">Progress & Trend</h2><span class="badge" id="daysLeft"></span></div>
+  <div class="chart" id="chart"></div>
+  <div class="meta"><span>Daily cumulative spend</span><span id="updatedAt"></span></div>
+</div>
+
+<div class="card section">
+  <h2>Test Controls</h2>
+  <div class="controls">
+    <button onclick="seedDemo()">Load demo data</button>
+    <button class="secondary" onclick="resetDemo()">Reset</button>
+  </div>
+  <div class="footer">
+    Este PWA é para validar visual, instalação na Home Screen e usabilidade no iPhone/iPad.
+    Os dados ficam neste navegador durante o teste. A conexão bancária automática entra depois da aprovação do layout.
+  </div>
+</div>
+</div>
+
+<script>
+const DEFAULT={
+ income:7000,
+ householdBurn:4288.63,
+ work:3046.43,
+ projected:6310,
+ updatedAt:new Date().toISOString(),
+ categories:[
+  {name:"Groceries",spent:742.38,target:1000},
+  {name:"General Shopping",spent:268.94,target:500},
+  {name:"Restaurants/Dining",spent:132.16,target:250},
+  {name:"Gasoline",spent:98.72,target:250},
+  {name:"Fixed Essentials",spent:3011.43,target:3400}
+ ],
+ trend:[120,260,410,590,830,970,1120,1460,1780,2050,2380,2670,2890,3100,3450,3620,3810,3990,4120,4230,4288]
+};
+const money=v=>new Intl.NumberFormat("en-US",{style:"currency",currency:"USD",maximumFractionDigits:0}).format(v||0);
+let data=JSON.parse(localStorage.getItem("pwa.demo")||"null")||DEFAULT;
+function colorFor(p){return p>1?"var(--red)":p>=.8?"var(--orange)":"var(--green)"}
+function render(){
+ const now=new Date();
+ monthLabel.textContent=now.toLocaleDateString("pt-BR",{month:"long",year:"numeric"});
+ income.textContent=money(data.income);
+ burn.textContent=money(data.householdBurn);
+ work.textContent=money(data.work);
+ available.textContent=money(data.income-data.householdBurn);
+ const pct=data.householdBurn/Math.max(data.income,1);
+ totalPct.textContent=Math.round(pct*100)+"%";
+ totalBar.style.width=Math.min(100,pct*100)+"%";
+ spentText.textContent=money(data.householdBurn)+" spent";
+ projText.textContent="Projected "+money(data.projected);
+ const dim=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();
+ daysLeft.textContent=Math.max(0,dim-now.getDate())+" days left";
+ updatedAt.textContent="Updated "+new Date(data.updatedAt).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});
+
+ categories.innerHTML=data.categories.map(c=>{
+  const p=c.spent/Math.max(c.target,1);
+  return `<div class="category">
+   <div class="row"><span class="catname">${c.name}</span><span>${money(c.spent)} / ${money(c.target)}</span></div>
+   <div class="bar"><span style="width:${Math.min(100,p*100)}%;background:${colorFor(p)}"></span></div>
+   <div class="meta"><span>${Math.round(p*100)}% of target</span><span>${p>1?"Over target":p>=.8?"Watch":"On track"}</span></div>
+  </div>`
+ }).join("");
+
+ const max=Math.max(...data.trend,1);
+ chart.innerHTML=data.trend.map(v=>`<div class="col" style="height:${Math.max(4,v/max*100)}%"></div>`).join("");
+}
+function seedDemo(){data={...DEFAULT,updatedAt:new Date().toISOString()};localStorage.setItem("pwa.demo",JSON.stringify(data));render()}
+function resetDemo(){localStorage.removeItem("pwa.demo");data=DEFAULT;render()}
+function toggleMode(){alert("Nesta versão de teste, Demo/Live serve apenas como placeholder. O modo Live será ativado quando conectarmos o backend público.");}
+render();
+if("serviceWorker" in navigator){navigator.serviceWorker.register("./sw.js").catch(()=>{})}
+</script>
+</body></html>

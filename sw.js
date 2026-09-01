@@ -1,4 +1,4 @@
-const CACHE = 'household-budget-pwa-v8';
+const CACHE = 'household-budget-pwa-v9';
 
 const ASSETS = [
   './',
@@ -8,7 +8,6 @@ const ASSETS = [
 
 self.addEventListener('install', event => {
   self.skipWaiting();
-
   event.waitUntil(
     caches.open(CACHE).then(cache => cache.addAll(ASSETS))
   );
@@ -32,22 +31,15 @@ self.addEventListener('fetch', event => {
       fetch(event.request)
         .then(response => {
           const copy = response.clone();
-
-          caches.open(CACHE).then(cache => {
-            cache.put(event.request, copy);
-          });
-
+          caches.open(CACHE).then(cache => cache.put(event.request, copy));
           return response;
         })
         .catch(() => caches.match(event.request))
     );
-
     return;
   }
 
   event.respondWith(
-    caches.match(event.request).then(cached =>
-      cached || fetch(event.request)
-    )
+    caches.match(event.request).then(cached => cached || fetch(event.request))
   );
 });

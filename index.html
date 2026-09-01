@@ -10,178 +10,103 @@
 <link rel="manifest" href="manifest.webmanifest">
 <title>Household Budget</title>
 <style>
-:root{
-  --bg:#0b1220;--panel:#111827;--text:#f8fafc;--muted:#94a3b8;
-  --line:#263244;--blue:#3b82f6;--green:#22c55e;--orange:#f59e0b;
-  --red:#ef4444;--purple:#a855f7;
-}
-*{box-sizing:border-box}
-body{
-  margin:0;
-  background:linear-gradient(180deg,#0b1220,#111827);
-  color:var(--text);
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
-  min-height:100vh
-}
-.wrap{max-width:760px;margin:auto;padding:18px 14px 70px}
-.top{display:flex;align-items:center;justify-content:space-between;gap:12px}
-h1{font-size:26px;margin:4px 0}.sub{color:var(--muted);font-size:13px}
-.status{font-size:11px;border-radius:99px;padding:5px 9px;background:#1e293b;color:#cbd5e1}
-.card{background:rgba(17,24,39,.96);border:1px solid var(--line);border-radius:22px;padding:17px}
-.section{margin-top:12px}
-.row{display:flex;align-items:center;justify-content:space-between;gap:10px}
-.total-title{font-size:18px;font-weight:800}
-.total-value{font-size:28px;font-weight:850;letter-spacing:-.02em}
-.totalbar{height:13px;border-radius:99px;background:#243044;overflow:hidden;margin-top:12px}
-.totalbar span{display:block;height:100%;background:linear-gradient(90deg,var(--blue),var(--purple));border-radius:99px}
-.meta{display:flex;justify-content:space-between;color:var(--muted);font-size:12px;margin-top:6px}
-.category{margin:17px 0}
-.catname{font-weight:760;font-size:15px}
-.amount{font-weight:720}
-.bar{height:11px;border-radius:99px;background:#243044;overflow:hidden;margin-top:7px}
-.bar span{display:block;height:100%;border-radius:99px}
-.footer{margin-top:14px;color:var(--muted);font-size:12px;line-height:1.45;text-align:center}
-@media(min-width:700px){
-  .wrap{padding-top:28px}
-  .card{padding:20px}
-  .category{margin:19px 0}
-}
+:root{--bg:#0b1220;--panel:#111827;--text:#f8fafc;--muted:#94a3b8;--line:#263244;--blue:#3b82f6;--green:#22c55e;--orange:#f59e0b;--red:#ef4444;--purple:#a855f7}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(180deg,#0b1220,#111827);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;min-height:100vh}
+.wrap{max-width:760px;margin:auto;padding:18px 14px 70px}.top{display:flex;align-items:center;justify-content:space-between;gap:12px}h1{font-size:26px;margin:4px 0}.sub{color:var(--muted);font-size:13px}.status{font-size:11px;border-radius:99px;padding:5px 9px;background:#1e293b;color:#cbd5e1}.card{background:rgba(17,24,39,.96);border:1px solid var(--line);border-radius:22px;padding:17px}.section{margin-top:12px}.row{display:flex;align-items:center;justify-content:space-between;gap:10px}.total-title{font-size:18px;font-weight:800}.total-value{font-size:28px;font-weight:850;letter-spacing:-.02em}.totalbar{height:13px;border-radius:99px;background:#243044;overflow:hidden;margin-top:12px}.totalbar span{display:block;height:100%;background:linear-gradient(90deg,var(--blue),var(--purple));border-radius:99px}.meta{display:flex;justify-content:space-between;color:var(--muted);font-size:12px;margin-top:6px}.category{margin:17px 0}.catname{font-weight:760;font-size:15px}.amount{font-weight:720}.bar{height:11px;border-radius:99px;background:#243044;overflow:hidden;margin-top:7px}.bar span{display:block;height:100%;border-radius:99px}.footer{margin-top:14px;color:var(--muted);font-size:12px;line-height:1.45;text-align:center}
+button,input{font:inherit}button{border:0;border-radius:12px;padding:11px 13px;font-weight:760;background:#e2e8f0;color:#0f172a}input{width:100%;padding:12px;border-radius:12px;border:1px solid var(--line);background:#0f172a;color:#f8fafc}.login{max-width:430px;margin:80px auto}.hidden{display:none!important}.error{color:#fca5a5;font-size:12px;margin-top:8px}
 </style>
 </head>
 <body>
-<div class="wrap">
+<div id="loginView" class="wrap hidden">
+  <div class="card login">
+    <h1>Household Budget</h1>
+    <div class="sub">Conectar ao modo Live</div>
+    <div style="height:14px"></div>
+    <input id="password" type="password" placeholder="Senha do dashboard">
+    <div style="height:10px"></div>
+    <button onclick="login()">Entrar</button>
+    <div id="loginError" class="error"></div>
+  </div>
+</div>
 
+<div id="appView" class="wrap hidden">
   <div class="top">
-    <div>
-      <h1>Spending Targets</h1>
-      <div class="sub" id="monthLabel"></div>
-    </div>
-    <span class="status" id="sourceBadge">Demo</span>
+    <div><h1>Spending Targets</h1><div class="sub" id="monthLabel"></div></div>
+    <span class="status" id="sourceBadge">Live</span>
   </div>
 
   <div class="card section">
     <div class="row">
-      <div>
-        <div class="total-title">Total Budget Progress</div>
-        <div class="sub">Household spending this month</div>
-      </div>
+      <div><div class="total-title">Total Budget Progress</div><div class="sub">Household spending this month</div></div>
       <div class="total-value" id="totalPct">0%</div>
     </div>
-
-    <div class="totalbar">
-      <span id="totalBar" style="width:0%"></span>
-    </div>
-
-    <div class="meta">
-      <span id="spentText">$0 spent</span>
-      <span id="projText">Projected $0</span>
-    </div>
+    <div class="totalbar"><span id="totalBar" style="width:0%"></span></div>
+    <div class="meta"><span id="spentText">$0 spent</span><span id="projText">Projected $0</span></div>
   </div>
 
-  <div class="card section">
-    <div id="categories"></div>
-  </div>
-
-  <div class="footer" id="syncText">
-    Widget-focus preview · live data connection comes next.
-  </div>
+  <div class="card section"><div id="categories"></div></div>
+  <div class="footer" id="syncText"></div>
 </div>
 
 <script>
-const API_URL = '';
+// After deploying the backend, replace this URL.
+// Example: https://household-budget-api.example.com
+const API_URL = 'https://YOUR-BACKEND-URL.example';
 
-const DEFAULT = {
-  income: 7000,
-  householdBurn: 4288.63,
-  projected: 6310,
-  updatedAt: new Date().toISOString(),
-  categories: [
-    {name:"Groceries", spent:742.38, target:1000},
-    {name:"General Shopping", spent:268.94, target:500},
-    {name:"Restaurants / Dining", spent:132.16, target:250},
-    {name:"Gasoline", spent:98.72, target:250},
-    {name:"Fixed Essentials", spent:3011.43, target:3400}
-  ]
-};
+const money=v=>new Intl.NumberFormat("en-US",{style:"currency",currency:"USD",maximumFractionDigits:0}).format(v||0);
+const colorFor=p=>p>1?"var(--red)":p>=.8?"var(--orange)":"var(--green)";
+let data=null;
 
-const money = v => new Intl.NumberFormat("en-US", {
-  style:"currency",
-  currency:"USD",
-  maximumFractionDigits:0
-}).format(v || 0);
-
-let data = DEFAULT;
-
-function colorFor(p){
-  return p > 1 ? "var(--red)" : p >= .8 ? "var(--orange)" : "var(--green)";
-}
+function token(){ return localStorage.getItem("budget.live.token"); }
 
 function render(){
-  const now = new Date();
-
-  monthLabel.textContent = now.toLocaleDateString("pt-BR", {
-    month:"long",
-    year:"numeric"
-  });
-
-  const pct = data.householdBurn / Math.max(data.income, 1);
-
-  totalPct.textContent = Math.round(pct * 100) + "%";
-  totalBar.style.width = Math.min(100, pct * 100) + "%";
-  spentText.textContent = money(data.householdBurn) + " spent";
-  projText.textContent = "Projected " + money(data.projected);
-
-  categories.innerHTML = data.categories.map(c => {
-    const p = c.spent / Math.max(c.target, 1);
-
-    return `
-      <div class="category">
-        <div class="row">
-          <span class="catname">${c.name}</span>
-          <span class="amount">${money(c.spent)} / ${money(c.target)}</span>
-        </div>
-
-        <div class="bar">
-          <span style="width:${Math.min(100,p*100)}%;background:${colorFor(p)}"></span>
-        </div>
-
-        <div class="meta">
-          <span>${Math.round(p*100)}% of target</span>
-          <span>${p > 1 ? "Over target" : p >= .8 ? "Watch" : "On track"}</span>
-        </div>
-      </div>
-    `;
+  const now=new Date();
+  monthLabel.textContent=now.toLocaleDateString("pt-BR",{month:"long",year:"numeric"});
+  const pct=data.householdBurn/Math.max(data.income,1);
+  totalPct.textContent=Math.round(pct*100)+"%";
+  totalBar.style.width=Math.min(100,pct*100)+"%";
+  spentText.textContent=money(data.householdBurn)+" spent";
+  projText.textContent="Projected "+money(data.projected);
+  categories.innerHTML=data.categories.map(c=>{
+    const p=c.spent/Math.max(c.target,1);
+    return `<div class="category">
+      <div class="row"><span class="catname">${c.name}</span><span class="amount">${money(c.spent)} / ${money(c.target)}</span></div>
+      <div class="bar"><span style="width:${Math.min(100,p*100)}%;background:${colorFor(p)}"></span></div>
+      <div class="meta"><span>${Math.round(p*100)}% of target</span><span>${p>1?"Over target":p>=.8?"Watch":"On track"}</span></div>
+    </div>`
   }).join("");
+  syncText.textContent="Last sync "+new Date(data.updatedAt).toLocaleString();
 }
 
-async function load(){
-  if(!API_URL){
-    render();
-    return;
-  }
-
+async function login(){
+  loginError.textContent="";
   try{
-    const r = await fetch(API_URL + "/api/dashboard", {credentials:"include"});
-    if(!r.ok) throw new Error("bad response");
+    const r=await fetch(API_URL+"/api/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({password:password.value})});
+    if(!r.ok) throw new Error();
+    const j=await r.json();
+    localStorage.setItem("budget.live.token",j.token);
+    await loadLive();
+  }catch(e){loginError.textContent="Não foi possível autenticar. Verifique a senha e a URL do backend."}
+}
 
-    const live = await r.json();
-    data = live;
-
-    sourceBadge.textContent = "Live";
-    syncText.textContent = "Last sync " + new Date(live.updatedAt).toLocaleString();
-    render();
+async function loadLive(){
+  if(!token()){showLogin();return}
+  try{
+    const r=await fetch(API_URL+"/api/dashboard",{headers:{"Authorization":"Bearer "+token()}});
+    if(r.status===401){localStorage.removeItem("budget.live.token");showLogin();return}
+    if(!r.ok) throw new Error();
+    data=await r.json();
+    appView.classList.remove("hidden");loginView.classList.add("hidden");render();
   }catch(e){
-    sourceBadge.textContent = "Offline";
-    syncText.textContent = "Live backend unavailable. Showing cached/demo data.";
-    render();
+    sourceBadge.textContent="Offline";
+    syncText.textContent="Backend indisponível.";
+    appView.classList.remove("hidden");loginView.classList.add("hidden");
   }
 }
 
-load();
-
-if("serviceWorker" in navigator){
-  navigator.serviceWorker.register("./sw.js").catch(()=>{});
-}
+function showLogin(){loginView.classList.remove("hidden");appView.classList.add("hidden")}
+loadLive();
+if("serviceWorker"in navigator){navigator.serviceWorker.register("./sw.js").catch(()=>{})}
 </script>
 </body>
 </html>
